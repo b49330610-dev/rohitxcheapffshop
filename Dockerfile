@@ -1,22 +1,16 @@
-FROM php:8.2-cli
+FROM php:8.2-apache
 
-# System dependencies install karo
-RUN apt-get update && apt-get install -y \
-    sqlite3 \
-    libsqlite3-dev \
-    && docker-php-ext-install pdo_sqlite
+RUN apt-get update && apt-get install -y sqlite3 libsqlite3-dev
+RUN docker-php-ext-install pdo_sqlite
+RUN a2enmod rewrite
 
-# Working directory
-WORKDIR /app
+COPY . /var/www/html/
+RUN chmod -R 777 /var/www/html
 
-# Sab files copy karo
-COPY . .
-
-# Permissions do
-RUN chmod -R 777 /app
-
-# Port expose karo
 EXPOSE 8080
 
-# Server start karo
-CMD ["php", "-S", "0.0.0.0:8080"]
+# Apache ko port 8080 pe run karne ke liye
+RUN sed -i 's/80/8080/g' /etc/apache2/ports.conf
+RUN sed -i 's/:80/:8080/g' /etc/apache2/sites-available/000-default.conf
+
+CMD ["apache2-foreground"]
